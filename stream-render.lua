@@ -36,7 +36,11 @@ function string.split(i, s)
 end
 
 while true do
-    local b = http.get("http://localhost:5000/get").readAll()
+    local b = http.get("http://localhost:5000/get")
+
+    if not b then return end
+
+    b = b.readAll()
     
     local c = string.sub(b, 2, #b-1) -- remove the quotes at the beginning and end of the string (caused by json encoding)
 
@@ -47,8 +51,9 @@ while true do
         -- splitting the image into monitors
         local monitorsImages = {}
 
-        for y = 0, 1 do
-            for x = 0, 1 do
+        local sqrt = math.sqrt(#monitors) - 1
+        for y = 0, sqrt do
+            for x = 0, sqrt do
                 local imgResult = {}
                 local splits = string.split(c, "/")
 

@@ -52,7 +52,7 @@ while true do
             lastData = b
             
             if soloMonitor then
-                local img = paintutils1.parseImage(c)
+                local img = paintutils1.parseImage(b)
                 paintutils.drawImage(img, 1, 1)
             else
                 -- splitting the image into monitors

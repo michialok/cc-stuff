@@ -1,5 +1,10 @@
 os.loadAPI("paintutils1.lua")
-local monitors = {peripheral.wrap("monitor_8"),peripheral.wrap("monitor_9"),peripheral.wrap("monitor_10"),peripheral.wrap("monitor_11")}
+local monitorsNumbers = {8,9,10,11}
+local monitors = {}
+
+for i, v in pairs(monitorsNumbers) do
+    monitors[i] = peripheral.wrap("monitor_"..v)
+end
 
 local monitor = peripheral.find("monitor")
 local soloMonitor = false -- set to true if only using 1 monitor
@@ -35,45 +40,50 @@ function string.split(i, s)
     return result
 end
 
+local lastData = nil
+
 while true do
     local b = http.get("http://localhost:5000/get")
 
-    if not b then return end
+    if b then
+        b = b.readAll()
 
-    b = b.readAll()
-    
-    local c = string.sub(b, 2, #b-1) -- remove the quotes at the beginning and end of the string (caused by json encoding)
-
-    if soloMonitor then
-        local img = paintutils1.parseImage(c)
-        paintutils.drawImage(img, 1, 1)
-    else
-        -- splitting the image into monitors
-        local monitorsImages = {}
-
-        local sqrt = math.sqrt(#monitors) - 1
-        for y = 0, sqrt do
-            for x = 0, sqrt do
-                local imgResult = {}
-                local splits = string.split(c, "/")
-
-                local xF, xT = 164*x+1, 164*(x+1)
-                local yF, yT = 81*y+1, 81*(y+1)
-
-                for yc = yF, yT do
-                    table.insert(imgResult, string.sub(splits[yc], xF, xT))
+        if b ~= lastData then
+            lastData = b
+            
+            if soloMonitor then
+                local img = paintutils1.parseImage(c)
+                paintutils.drawImage(img, 1, 1)
+            else
+                -- splitting the image into monitors
+                local monitorsImages = {}
+        
+                local sqrt = math.sqrt(#monitors) - 1
+                for y = 0, sqrt do
+                    for x = 0, sqrt do
+                        local imgResult = {}
+                        local splits = string.split(c, "/")
+        
+                        local xF, xT = 164*x+1, 164*(x+1)
+                        local yF, yT = 81*y+1, 81*(y+1)
+        
+                        for yc = yF, yT do
+                            table.insert(imgResult, string.sub(splits[yc], xF, xT))
+                        end
+        
+                        table.insert(monitorsImages, table.concat(imgResult, "/"))
+                    end
                 end
-
-                table.insert(monitorsImages, table.concat(imgResult, "/"))
+        
+                for index, monitor in pairs(monitors) do
+                    local img = paintutils1.parseImage(monitorsImages[index])
+                    term.redirect(monitor)
+                    paintutils.drawImage(img, 1, 1)
+                    sleep(.05)
+                end
             end
         end
-
-        for index, monitor in pairs(monitors) do
-            local img = paintutils1.parseImage(monitorsImages[index])
-            term.redirect(monitor)
-            paintutils.drawImage(img, 1, 1)
-        end
     end
-
+    
     sleep(1/15)
 end

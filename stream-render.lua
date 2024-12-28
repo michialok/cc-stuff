@@ -62,7 +62,7 @@ while true do
                 for y = 0, sqrt do
                     for x = 0, sqrt do
                         local imgResult = {}
-                        local splits = string.split(c, "/")
+                        local splits = string.split(b, "/")
         
                         local xF, xT = 164*x+1, 164*(x+1)
                         local yF, yT = 81*y+1, 81*(y+1)
